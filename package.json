@@ -21,18 +21,22 @@
 		"mysql2": "3.14.1"
 	},
 	"devDependencies": {
-		"@kirick/eslint-config": "0.1.30",
+		"@biomejs/biome": "2.3.1",
+		"@kirick/lint": "0.2.12",
+		"@types/bun": "1.2.23",
+		"@types/markdown-it": "14.1.2",
 		"@types/node": "^22.14.1",
-		"eslint": "9.10.0",
+		"eslint": "9.38.0",
+		"oxlint": "1.24.0",
 		"publint": "^0.3.12",
 		"tsdown": "^0.10.0",
-		"typescript": "5.8.3",
+		"typescript": "5.9.3",
 		"unplugin-unused": "^0.4.4"
 	},
 	"scripts": {
 		"build": "tsdown src/main.ts --publint --unused --dts --format esm --format cjs && rm dist/main.d.cts",
 		"check": "bun run lint && bun run build && bun run test",
-		"lint": "eslint . && tsc --skipLibCheck --noemit",
+		"lint": "biome format && oxlint && eslint . && tsc --skipLibCheck --noemit",
 		"test": "bun test --coverage"
 	},
 	"repository": {

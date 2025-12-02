@@ -1,10 +1,11 @@
 import mysql2 from 'mysql2/promise';
-import { sql } from './sql.js';
+import { bunSql } from './sql.js';
 
 export type MysqlClient = {
-	// readonly client: mysql2.Pool,
-	// readonly config: mysql2.ConnectionOptions,
-	sql<T = unknown>(query: TemplateStringsArray, ...values: unknown[]): Promise<T>,
+	sql<T = unknown>(
+		query: TemplateStringsArray,
+		...values: unknown[]
+	): Promise<T>;
 };
 
 /**
@@ -16,15 +17,16 @@ export function mysql(config: mysql2.PoolOptions): MysqlClient {
 	const raw_client = mysql2.createPool(config);
 
 	return {
-		// client: raw_client,
-		// get config() {
-		// 	return raw_client.pool.config.connectionConfig;
-		// },
-		async sql<T = unknown>(query: TemplateStringsArray, ...values: unknown[]): Promise<T> {
-			const [ result ] = await raw_client.query(
-				sql(query, ...values),
-			);
+		async sql<T = unknown>(
+			query: TemplateStringsArray,
+			...values: unknown[]
+		): Promise<T> {
+			const compiled = bunSql(query, ...values);
+
+			// <T = any>(strings: TemplateStringsArray, ...values: unknown[]): SQL.Query<T>;
+			// но не хелпер
+			const [result] = await raw_client.query(compiled.query, compiled.values);
 			return result as T;
 		},
-	} satisfies MysqlClient;
+	};
 }

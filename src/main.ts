@@ -8,7 +8,4 @@ export {
 	mysql,
 } from './client.js';
 
-export {
-	type Sql,
-	sql,
-} from './sql.js';
+export { bunSql } from './sql.js';
