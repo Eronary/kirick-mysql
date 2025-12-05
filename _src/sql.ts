@@ -305,6 +305,12 @@ const bunMySqlClient = new BunSQLRuntime({
 	adapter: 'mysql',
 });
 
+/**
+ *
+ * @param first
+ * @param rest
+ * @returns
+ */
 function localSql(
 	first: unknown,
 	...rest: unknown[]
