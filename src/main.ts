@@ -1,63 +1,43 @@
-import type { SQL as BunSQL } from 'bun';
-
-/*
-import { sql, SQL } from "bun";
-
-// конструктор клиента
-const mysql = new SQL("mysql://user:pass@localhost:3306/mydb");
-const mysqlResults = await mysql`
-  SELECT * FROM users
-  WHERE active = ${true}
-`;
-
-// готовый клиент из env
-const users = await sql`
-  SELECT * FROM users
-  WHERE active = ${true}
-  LIMIT ${10}
-`;
-*/
+import mysql2 from 'mysql2/promise';
+import type {
+	SQLClientConstructor,
+	SQLClientProperties,
+	SQLFn,
+} from './types.js';
 
 /**
  * Define properties on an object with correct types.
  * @param target -
  * @param properties -
  */
-function defineProperties<T, P extends PropertyDescriptorMap>(target: T, properties: P) {
-	return Object.defineProperties(target, properties) as T & { [K in keyof P]: P[K]['value'] };
+function merge<T, P extends Record<string, unknown>>(target: T, properties: P) {
+	return Object.defineProperties(
+		target,
+		Object.fromEntries(
+			Object.entries(properties).map(([key, value]) => [
+				key,
+				{ enumerable: true, value },
+			]),
+		) as Record<string, PropertyDescriptor>,
+	) as T & P;
 }
 
-type _Sql = BunSQL;
+// oxlint-disable-next-line func-style
+export const SQL = function (options: string) {
+	const raw_client = mysql2.createPool(options);
 
-// eslint-disable-next-line jsdoc/require-jsdoc
-export function SQL(options: string | URL | BunSQL.Options) {
-	const fn: _Sql = (arg0: unknown, ...args: unknown[]) => {
-		return 1;
+	// oxlint-disable-next-line func-style
+	const sql: SQLFn = function (arg0: unknown, ...args: unknown[]) {
+		// Tagged template
+		if (isTemplateStringsArray(arg0)) {
+			const sql_query = createSqlQuery(arg0, ...args);
+			return raw_client.query(sql_query.query, sql_query.values);
+		}
 	};
 
-	const r: BunSQL = defineProperties(
-		(arg0: unknown, ...args: unknown[]) => {
-			return 1;
-		},
-		{
-			options: {
-				enumerable: true,
-				value: options,
-			},
-			connect: {
-				enumerable: true,
-				value(): Promise<BunSQL> {
-					throw new Error('Not implemented');
-				},
-			},
-			close: {
-				enumerable: true,
-				value(): Promise<void> {
-					throw new Error('Not implemented');
-				},
-			},
-		},
-	);
+	return merge(sql, {
+		options,
+	} satisfies SQLClientProperties);
+} as unknown as SQLClientConstructor;
 
-	return r;
-}
+export type { MySQLError } from './error.js';
